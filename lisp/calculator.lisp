@@ -166,7 +166,7 @@
       (let ((e (parse-with-lexer #'lexer *expression-parser*)))
         (when (null e)
           (return-from calculator))
-        (format t " => ~A~%" (evaluate e))))))
+        (format t " => ~A~%" e)))))
 
 (defun expand ()
   (macroexpand-1 (parse-with-lexer #'lexer *expression-parser*)))
