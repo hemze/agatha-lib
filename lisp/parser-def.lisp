@@ -1,7 +1,4 @@
 (require 'yacc)
-(defpackage #:agatha-lib
-  (:use #:cl #:yacc)
-  (:export #:run #:read-id #:lexer #:get-terminal #:read-special-sym))
 
 (in-package #:agatha-lib)
 
@@ -10,7 +7,6 @@
          (token-sym (intern (string-upcase token) '#.*package*))
          )
     (dolist (term terms)
-      (format t "local: ~a(~a) = other: ~a(~a) ~a~%" term (type-of term) token-sym (type-of token-sym) (eql token-sym term))
       (cond
         ((eql token-sym term)
          (return-from get-terminal (list term token)))
@@ -41,7 +37,7 @@
     (loop
       (let ((c (read-char stream nil nil)))
         (when (or (null c)
-                  (not (or (digit-char-p c) (alpha-char-p c) (eql c #\_))))
+                  (not (or (digit-char-p c) (alpha-char-p c) (eql c #\-))))
           (maybe-unread c stream)
           (when (null v)
             (lexer-error c))
@@ -65,35 +61,33 @@
          ;(lexer-error c)
          (print c))))))
 
-;(eval-when (:compile-toplevel :load-toplevel :execute)
+(eval-when (:compile-toplevel :load-toplevel :execute)
   (defun print- (&rest a)
-    (format t "Value: ~a ~% Type: ~a" a (type-of a))
-    )
-;  )
+    (format t "~%----------~%Term: ~a ~% Value: ~a" (car a) (cdr a))))
+
 (define-parser *grammar-parser*
   (:start-symbol expression)
   (:terminals (terminals productions precedence start-symbol word is leftbr rightbr eq))
   (expression
    ()
+   start-def
    terms-def
    )
-  (terms-def (terminals is term-list))
+  (start-def (start-symbol is term #'print-))
+  (term
+   terminals
+   productions
+   precedence
+   start-symbol
+   word)
+  (terms-def (terminals is term-list #'print-))
   (term-list
-   (word term-list #'print-)
-   ())
+   ()
+   (word term-list)
+   )
   (prods-def
    (productions is leftbr prods-list rightbr))
   (prod-list
    (prod prod-list))
   (prod (word eq word))
   )
-
-(defun run ()
-  (format t "Type in.~%")
-  (loop
-    ;(with-simple-restart (abort "Return to the toplevel.")
-      (format t "? ")
-      (let ((e (parse-with-lexer #'lexer *grammar-parser*)))
-        (when (null e)
-          (return-from run))
-        (format t " => ~A~%"  e))))
