@@ -52,7 +52,7 @@
         (cond
           ((member c '(#\Space #\Tab #\Newline)))
           ((member c '(#\Return)) (return-from lexer (values nil nil)))
-          ;;((member c '(nil)) (return-from lexer (values nil nil)))
+          ;;;;((member c '(nil)) (return-from lexer (values nil nil)))
           ((member c '(#\: #\{ #\} #\= #\;))
            (return-from lexer (values-list (read-special-sym c))))
           ((alpha-char-p c)
