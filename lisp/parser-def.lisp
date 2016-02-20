@@ -1,3 +1,4 @@
+(proclaim '(optimize (speed 0) (safety 3) (debug 3)))
 (require 'yacc)
 
 (in-package #:agatha-lib)
@@ -9,21 +10,20 @@
     (dolist (term terms)
       (cond
         ((eql token-sym term)
-         (return-from get-terminal (list term token)))
-        (t
-         ())))
-    (unintern token-sym '#.*package*)
-    (return-from get-terminal (list 'word token))))
+         (format t "Token: ~a~%" term)
+         (return-from get-terminal (list token-sym token))))))
+  ;;(unintern token-sym '#.*package*)
+    (format t "Token: ~a~%" 'word)
+    (return-from get-terminal (list 'word token)))
 
 (defun read-special-sym (sym)
   (let ((syms '((#\: is) (#\{ leftbr) (#\} rightbr) (#\= eq))))
     (dolist (smb syms)
       (cond
         ((eql sym (car smb))
-         (format t "Special symbol: ~a~%" sym)
+         (format t "Token: ~a~%" (cadr smb))
          (return-from read-special-sym
-                               (list (cadr smb) sym)))
-        (t (return-from read-special-sym (list nil nil)))))))
+           (list (cadr smb) sym)))))))
 
 (defun lexer-error (char)
   (error (make-condition 'yacc-runtime-error :character char)))
@@ -44,36 +44,37 @@
           (return-from read-id (coerce (nreverse v) 'string)))
         (push c v)))))
 
-(defun lexer (&optional (stream *standard-input*))
-  (loop
-    (let ((c (read-char stream nil nil)))
-      (cond
-        ((member c '(#\Space #\Tab)))
-        ((member c '(nil #\Newline)) (return-from lexer (values nil nil)))
-        ((member c '(#\: #\{ #\} #\=))
-         (return-from lexer (values-list (read-special-sym c))))
-        ((alpha-char-p c)
-         (unread-char c stream)
-         (let ((token (read-id stream)))
-           (format t "Token: ~a~%" token)
-           (return-from lexer (values-list (get-terminal token)))))
-        (t
-         ;(lexer-error c)
-         (print c))))))
+(defun lexer (line)
+  (format t "-------~a--------~%" line)
+  (with-input-from-string (stream line)
+    (loop
+      (let ((c (read-char stream nil nil)))
+        (cond
+          ((member c '(#\Space #\Tab #\Newline)))
+          ((member c '(#\Return)) (return-from lexer (values nil nil)))
+          ;;((member c '(nil)) (return-from lexer (values nil nil)))
+          ((member c '(#\: #\{ #\} #\= #\;))
+           (return-from lexer (values-list (read-special-sym c))))
+          ((alpha-char-p c)
+           (unread-char c stream)
+           (let ((token (read-id stream)))
+             (return-from lexer (values-list (get-terminal token)))))
+          (t
+           (lexer-error c)))))))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defun print- (&rest a)
-    (format t "~%----------~%Term: ~a ~% Value: ~a" (car a) (cdr a))))
+    (format t "~%----------~%Result: ~a~%" a)))
 
 (define-parser *grammar-parser*
-  (:start-symbol expression)
-  (:terminals (terminals productions precedence start-symbol word is leftbr rightbr eq))
-  (expression
-   ()
+  (:start-symbol expr)
+  (:terminals (terminals productions precedence start-symbol word is leftbr rightbr eq break))
+  (expr
    start-def
    terms-def
-   )
-  (start-def (start-symbol is term #'print-))
+   prods-def)
+  (start-def
+   (start-symbol is term))
   (term
    terminals
    productions
@@ -82,10 +83,10 @@
    word)
   (terms-def (terminals is term-list #'print-))
   (term-list
-   ()
    (word term-list)
    )
   (prods-def
+   ()
    (productions is leftbr prods-list rightbr))
   (prod-list
    (prod prod-list))
