@@ -4,7 +4,7 @@
 (in-package #:agatha-lib)
 
 (defun get-terminal (token)
-  (let* ((terms '(terminals precedence start-symbol productions))
+  (let* ((terms (list 'terminals 'precedence 'start-symbol 'productions))
          (token-sym (intern (string-upcase token) '#.*package*))
          )
     (dolist (term terms)
@@ -44,23 +44,20 @@
           (return-from read-id (coerce (nreverse v) 'string)))
         (push c v)))))
 
-(defun lexer (line)
-  (format t "-------~a--------~%" line)
-  (with-input-from-string (stream line)
-    (loop
-      (let ((c (read-char stream nil nil)))
-        (cond
-          ((member c '(#\Space #\Tab #\Newline)))
-          ((member c '(#\Return)) (return-from lexer (values nil nil)))
-          ;;;;((member c '(nil)) (return-from lexer (values nil nil)))
-          ((member c '(#\: #\{ #\} #\= #\;))
-           (return-from lexer (values-list (read-special-sym c))))
-          ((alpha-char-p c)
-           (unread-char c stream)
-           (let ((token (read-id stream)))
-             (return-from lexer (values-list (get-terminal token)))))
-          (t
-           (lexer-error c)))))))
+(defun lexer (stream)
+  (loop
+    (let ((c (read-char stream nil nil)))
+      (cond
+        ((null c) (return-from lexer (values nil nil)))
+        ((member c '(#\Space #\Tab #\Newline #\Return)) (lexer stream))
+        ((member c '(#\: #\{ #\} #\=))
+         (return-from lexer (values-list (read-special-sym c))))
+        ((alpha-char-p c)
+         (unread-char c stream)
+         (let ((token (read-id stream)))
+           (return-from lexer (values-list (get-terminal token)))))
+        (t
+         (lexer-error c))))))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defun print- (&rest a)

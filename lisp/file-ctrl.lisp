@@ -17,10 +17,11 @@
 
 (defun read-config (filename)
   (with-open-file (stream filename)
-    (loop for line = (read-line stream nil)
-          while line do
-            (parse-with-lexer (lexer line) *grammar-parser*))
-      ))
+;    (loop for line = (read-line stream nil)
+;          while line do
+;            (with-input-from-string (stream line)
+    (parse-with-lexer (lexer stream) *grammar-parser*)))
+;))
 
 (defun read-configs (&optional (path *common-path*))
   (normalize-path path)
