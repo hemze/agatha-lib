@@ -1,0 +1,8 @@
+- start-symbol: expression
+- terminals:
+    - write
+    - read
+    - if
+    - check-if
+    - to
+    - d-quotes

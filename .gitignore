@@ -1,0 +1,4 @@
+*.bak
+lisp/*.bak
+lisp/#*#
+lisp/parsers/#*#
