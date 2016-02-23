@@ -1,8 +1,11 @@
-- start-symbol: expression
-- terminals:
-    - write
-    - read
-    - if
-    - check-if
-    - to
-    - d-quotes
+- productions:
+    - expr
+        -
+         - one
+        -
+         - one
+         - two
+        -
+         - one
+         - two
+         - three
