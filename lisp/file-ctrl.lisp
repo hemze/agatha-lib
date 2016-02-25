@@ -1,7 +1,7 @@
 (in-package #:agatha-lib)
 (require 'cl-yaclyaml)
 
-(defparameter *config-file-mask* "*.conf")
+(defparameter *config-file-mask* "*.yml")
 
 (defun normalize-path (path)
   (let ((last-ind (1- (length path))))
@@ -16,59 +16,51 @@
            (t
             (return path))))))
 
-(defun walk-through-hash (hash)
-;;  (format t "Type: ~a;" (type-of hash))
-  (let ((result '()))
-    ;;(dolist (hash list-of-hashes)
-      (cond
-        ((eql (type-of hash) 'HASH-TABLE)
-         (loop for key being the hash-keys of hash
-                 using (hash-value value)
-               do
-                  (cond
-                    ((eql (type-of value) 'CONS)
-                     (format t "Type: ~a~%" (type-of value))
-                     (return-from walk-through-hash (append result (cons key (walk-through-hash value))))
-                     )
-                    (t
-                     (format t "Another-2: ~a~%" (type-of value))))))
-        (t
-         (format t "Another-1: ~a~%" (type-of hash))
-         (return-from walk-through-hash (list hash))
-         ))))
+(defun gather-productions (obj result)
+  (cond
+    ((eql (type-of obj) 'HASH-TABLE)
+     (loop for key being the hash-keys of obj
+             using (hash-value value)
+           do
+              (cond
+                ((eql (type-of value) 'CONS)
+                 (let ((values))
+                   (dolist (h value)
+                     (setf values (append values
+                                          (list
+                                           (loop for val being the hash-values of h
+                                                 collecting val)))))
+                   (setf result (append result (list (cons key values))))))
+                (t
+                 (setf result (append result (list (list key value)))))))))
+  result)
 
+(defun print-hash (hash)
+  (loop for key being the hash-keys of hash
+          using (hash-value value)
+        do
+           (cond
+             ((eql (type-of value) 'HASH-TABLE)
+              (print-hash value))
+             ((eql (type-of value) 'CONS)
+              (dolist (obj value)
+                (print-hash obj)))
+             (t
+              (format t "key: ~a, value: ~a~%" key value))
+             )))
 
 (defun read-config (filename)
-  (let ((doc (cl-yy::yaml-load-file filename)))
+  (let ((doc (cl-yy::yaml-load-file filename)) (result '()))
     (dolist (hash doc)
       (loop for key being the hash-keys of hash
               using (hash-value value)
             do
                (cond
                  ((string= key "productions")
-                  (walk-through-hash (gethash "productions" hash)))
+                  (setf result (gather-productions value result)))
                  (t
-                  (format t "Key: ~a~%" key)))))))
-;;
-;;       (loop for key being the hash-keys of hash
-;;             do
-;; ;               (format t "Key: ~a. Value: ~a~%" key (gethash key hash))))))
-;;                (dolist (h (gethash key hash))
-;;                  (loop for k being the hash-keys of h
-;;                        do
-;;                           (format t "Key: ~a. Value: ~a~%" k (gethash k h)))))))
-  )
-
-  ;; (with-open-file (stream filename)
-
-    ;; (loop for line = (read-line stream nil)
-    ;;       while line
-    ;;       do
-    ;;          (with-input-from-string (line-stream line)
-                ;; (parse-with-lexer
-                ;;  #'(lambda() (lexer line-stream))
-                ;;  *grammar-parser*))
-          ;; ))
+                  (format t "Key: ~a~%" key)))))
+    (format t "Result: ~a~%" result)))
 
 
 ;;
