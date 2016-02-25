@@ -1,11 +1,10 @@
 - productions:
-    - expr
-        -
-         - one
-        -
-         - one
-         - two
-        -
-         - one
-         - two
-         - three
+   expr1:
+     - 1: one #'identity
+     - 2: one two #'list
+     - 3: one two three #'list
+   expr2:
+     - 1: one #'identity
+     - 2: one two #'list
+     - 3: one two three #'list
+   expr3: four
