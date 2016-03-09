@@ -2,13 +2,29 @@
 (require 'buffalo)
 
 (in-package #:agatha-lib)
+(in-package #:buffalo)
 
-;;(defvar *term-list* '(terminals productions precedence start-symbol))
-
-(defmacro make-parser-macro (&key name terminals start-symbol productions precedence)
-  `(define-parser ,name
-      (:start-symbol ,start-symbol)
-    (:terminals ,terminals)
-    ,productions
-    )
-  )
+(defun parse-prod (form)
+  (let ((symbol (car form))
+        (productions '()))
+    (dolist (stuff (cdr form))
+      (cond
+        ((and (symbolp stuff) (not (null stuff)))
+         (push (make-production symbol (list stuff)
+                                :action #'identity)
+               productions))
+        ((listp stuff)
+         (let* ((prec (when (eq :%prec (car stuff))
+                        (unless (symbolp (second stuff))
+                          (error "Malformed precedence production ~S" stuff))
+                        (second stuff)))
+                (stuff (if prec
+                           (cddr stuff)
+                           stuff))
+                (l (car (last stuff))))
+           (let ((rhs (if (symbolp l) stuff (butlast stuff)))
+                 (action (if (symbolp l) #'list l)))
+             (push (make-production symbol rhs :action action :prec prec)
+                   productions))))
+        (t (error "Unexpected production ~S" stuff))))
+    productions))

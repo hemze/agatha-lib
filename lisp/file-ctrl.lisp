@@ -16,62 +16,106 @@
            (t
             (return path))))))
 
-(defun gather-productions (obj result)
-  (cond
-    ((eql (type-of obj) 'HASH-TABLE)
-     (loop for key being the hash-keys of obj
-             using (hash-value value)
-           do
-              (cond
-                ((eql (type-of value) 'CONS)
-                 (let ((values))
-                   (dolist (h value)
-                     (setf values (append values
-                                          (list
-                                           (loop for val being the hash-values of h
-                                                 collecting val)))))
-                   (setf result (append result (list (cons key values))))))
-                (t
-                 (setf result (append result (list (list key value)))))))))
-  result)
+(defun gather-productions (obj)
+  (let ((result))
+    (cond
+      ((eql (type-of obj) 'HASH-TABLE)
+       (loop for key being the hash-keys of obj
+               using (hash-value value)
+             do
+                (cond
+                  ((eql (type-of value) 'CONS)
+                   (let ((values))
+                     (dolist (h value)
+                       (setf values (append values
+                                            (intern-joint h))))
+                     (setf result (append result (list (cons (intern-it key) values))))))
+                  (t
+                   (setf result (append result (list (list (intern-it key) (intern-it value))))))))))
+    result))
 
-(defun print-hash (hash)
-  (loop for key being the hash-keys of hash
-          using (hash-value value)
-        do
-           (cond
-             ((eql (type-of value) 'HASH-TABLE)
-              (print-hash value))
-             ((eql (type-of value) 'CONS)
-              (dolist (obj value)
-                (print-hash obj)))
-             (t
-              (format t "key: ~a, value: ~a~%" key value))
-             )))
+(defun gather-terminals (terms)
+   (if (eql (type-of terms) 'CONS)
+       (loop for term in terms
+             collect (intern-it term))
+      (intern-it terms))
+  )
 
 (defun read-config (filename)
-  (let ((doc (cl-yy::yaml-load-file filename)) (result '()))
+  (let ((doc (cl-yy::yaml-load-file filename))
+        (productions-def)
+        (productions)
+        (terminals)
+        (start-symbol)
+        (name)
+        (precedence)
+        (model (make-pd-model))
+        (grammar)
+        (parser))
     (dolist (hash doc)
       (loop for key being the hash-keys of hash
               using (hash-value value)
             do
                (cond
                  ((string= key "productions")
-                  (setf result (gather-productions value result)))
+                  (setf productions-def (gather-productions value))
+                  (if (> (list-length productions-def) 0)
+                      (setf (have-productions model) t)))
+                 ;;
+                 ((string= key "name")
+                  (setf name (intern-it value))
+                  (if (> (length value) 0)
+                      (setf (have-name model) t)))
+                 ;;
+                 ((string= key "terminals")
+                  (setf terminals (gather-terminals value))
+                  (if (> (list-length terminals) 0)
+                      (setf (have-terminals model) t)))
+                 ;;
+                 ((string= key "start-symbol")
+                  (setf start-symbol (intern-it value))
+                  (if (> (length value) 0)
+                      (setf (have-start-symbol model) t)))
+                 ;;
+                 ((string= key "precedence")
+                  (setf precedence value))
                  (t
                   (format t "Key: ~a~%" key)))))
-    (format t "Result: ~a~%" result)))
+    ;;
+    ;; Check the completeness
+    (unless (equalp model *pattern-model*)
+      (format t "Somethin's wrong with the parser definition: ~%")
+      (format t "Assembled: ~a~%" model)
+      (format t "Pattern:   ~a~%+++~%" *pattern-model*))
+    ;;
+    (dolist (prod productions-def)
+      (setf productions (append productions (nreverse (parse-prod prod)))))
 
+    ;; (setf productions (nreverse productions))
+    (print-complex productions)
 
-;;
-;; productions:
-;; write-file: write sentence to d-quotes file-name d-quotes #f = open("$6")\nf.write($2);
-;; sentence:
-;; empty
-;; word sentence;
-;; empty: ;
-
-
+    (setf grammar (make-grammar :name name
+                                :start-symbol start-symbol
+                                :terminals terminals
+                                :precedence precedence
+                                :productions productions))
+    (setf parser (make-parser grammar))
+    (print-complex parser)
+    ;; (make-parser-macro
+    ;;  :name name
+    ;;  :terms terminals
+    ;;  :prods productions
+    ;;  :prec precedence
+    ;;  :start-sym start-symbol)
+    ;; (format t "Macro: ~a~%"
+    ;;         (macroexpand-1 '(make-parser-macro
+    ;;                          :name name
+    ;;                          :terms terminals
+    ;;                          :prods productions
+    ;;                          :prec precedence
+    ;;                          :start-sym start-symbol)))
+    )
+  )
 (defun read-configs (&optional (path *common-path*))
   (normalize-path path)
   (loop for file in (directory

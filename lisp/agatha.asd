@@ -7,6 +7,7 @@
   :version "1"
   :depends-on (#:buffalo #:cl-yaclyaml)
   :components ((:file "init")
+               (:file "service")
                (:file "file-ctrl")
                (:file "parser-def")))
 
