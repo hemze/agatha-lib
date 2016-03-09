@@ -90,7 +90,6 @@
     ;;
     (dolist (prod productions-def)
       (setf productions (append productions (nreverse (parse-prod prod)))))
-
     ;; (setf productions (nreverse productions))
     (print-complex productions)
 
