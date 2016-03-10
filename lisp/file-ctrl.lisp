@@ -1,5 +1,6 @@
 (in-package #:agatha-lib)
 (require 'cl-yaclyaml)
+(require 'cl-ppcre)
 
 (defparameter *config-file-mask* "*.yml")
 
@@ -41,13 +42,35 @@
       (intern-it terms))
   )
 
+(defmacro prepare-lexer (&key name definitions)
+  `(defun ,name (str)
+     ;;(cond
+
+     ;; ,@(loop for def in definitions
+     ;;        collect '((scan (pattern def) str) (return-from name (values (token def) str))))
+     ;;)
+  ))
+
+;; (defun -lexer (str)
+;;   (cond
+;;     ((scan pattern1 str) (return-from -lexer (values token1 str)))
+;;     ((scan pattern2 str) (return-from -lexer (values token2 str)))))
+
+(defun gather-lexer-defs (obj)
+  (loop for key being the hash-keys of obj
+          using (hash-value value)
+        collect (make-lexer-def :pattern value :token key)))
+
 (defun read-config (filename)
   (let ((doc (cl-yy::yaml-load-file filename))
         (productions-def)
         (productions)
         (terminals)
+        (lexer-defs)
         (start-symbol)
         (name)
+        (parser-name)
+        (lexer-name)
         (precedence)
         (model (make-pd-model))
         (grammar)
@@ -63,8 +86,10 @@
                       (setf (have-productions model) t)))
                  ;;
                  ((string= key "name")
-                  (setf name (intern-it value))
-                  (if (> (length value) 0)
+                  (setf parser-name (intern-it value))
+                  (setf parser-name (intern-it (concatenate 'string value "-parser")))
+                  (setf lexer-name (intern-it (concatenate 'string value "-lexer")))
+                  (when (> (length value) 0)
                       (setf (have-name model) t)))
                  ;;
                  ((string= key "terminals")
@@ -79,6 +104,8 @@
                  ;;
                  ((string= key "precedence")
                   (setf precedence value))
+                 ((string= key "lexer")
+                  (setf lexer-defs (gather-lexer-defs value)))
                  (t
                   (format t "Key: ~a~%" key)))))
     ;;
@@ -91,28 +118,19 @@
     (dolist (prod productions-def)
       (setf productions (append productions (nreverse (parse-prod prod)))))
     ;; (setf productions (nreverse productions))
-    (print-complex productions)
+    ;; (print-complex productions)
 
-    (setf grammar (make-grammar :name name
-                                :start-symbol start-symbol
-                                :terminals terminals
-                                :precedence precedence
-                                :productions productions))
-    (setf parser (make-parser grammar))
-    (print-complex parser)
-    ;; (make-parser-macro
-    ;;  :name name
-    ;;  :terms terminals
-    ;;  :prods productions
-    ;;  :prec precedence
-    ;;  :start-sym start-symbol)
-    ;; (format t "Macro: ~a~%"
-    ;;         (macroexpand-1 '(make-parser-macro
-    ;;                          :name name
-    ;;                          :terms terminals
-    ;;                          :prods productions
-    ;;                          :prec precedence
-    ;;                          :start-sym start-symbol)))
+    ;; (setf grammar (make-grammar :name name
+    ;;                             :start-symbol start-symbol
+    ;;                             :terminals terminals
+    ;;                             :precedence precedence
+    ;;                             :productions productions))
+    ;; (setf parser (make-parser grammar))
+    ;; (print-complex parser)
+
+    (print-complex lexer-defs)
+    (print (macroexpand-1
+     '(prepare-lexer :name lexer-name :definitions lexer-defs)))
     )
   )
 (defun read-configs (&optional (path *common-path*))

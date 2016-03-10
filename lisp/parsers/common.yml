@@ -1,28 +1,23 @@
-- name: test-parser
+- name: fs-lib
 - start-symbol: expr
-- terminals: [copy, delete, move, file]
+- terminals: [copy, delete, move, filename]
 - productions:
    expr:
      - 1:
         value: operation operand
-        action: lambda (&rest x) (format t "Operation: ~a. Operand: ~a~%" (car x) (cadr x))
-     - 2:
-        value: one two
-     - 3:
-        value: one two three
-        action:  list
-   expr2:
+        action: lambda (x) (print x)
+#
+#
+   operation:
      - 1:
-        value: one
-        action: identity
+        value: copy
      - 2:
-        value: one two
-        action:  list
+        value: delete
      - 3:
-        value: one two three
-        action:  list
-   expr3: four
-   one: id
-   two: id
-   three: id
-   four: id
+        value: move
+   operand: filename
+- lexer:
+    filename: '["]?.+(\..+)?["]?'
+    copy: cp
+    move: mv
+    delete : del

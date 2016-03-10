@@ -2,7 +2,6 @@
 (require 'buffalo)
 
 (in-package #:agatha-lib)
-(in-package #:buffalo)
 
 (defun parse-prod (form)
   (let ((symbol (car form))
