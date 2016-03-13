@@ -1,6 +1,6 @@
 (defpackage #:agatha-lib
   (:use #:cl #:buffalo #:cl-yaclyaml)
-  (:export #:make-parser-macro #:read-configs))
+  (:export #:prepare-lexer #:read-configs))
 
 (in-package #:agatha-lib)
 (defvar *common-path* "./parsers/")

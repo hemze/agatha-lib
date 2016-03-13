@@ -42,14 +42,18 @@
       (intern-it terms))
   )
 
-(defmacro prepare-lexer (&key name definitions)
-  `(defun ,name (str)
-     ;;(cond
+(defun prep-lexer (&key name defs)
+  `(defun ,(symbol-value name) (str)
+     (cond
+       ,@(loop for def in defs
+               collect `((scan (pattern ,def) str) (return-from ,name (values (token ,def) str)))))))
 
-     ;; ,@(loop for def in definitions
-     ;;        collect '((scan (pattern def) str) (return-from name (values (token def) str))))
-     ;;)
-  ))
+(defmacro prepare-lexer (&key name defs)
+  `(defun ,name (str)
+     `(cond
+       ,@(loop for def in ,defs
+                collect `((scan (pattern ,def) str) (return-from ,name (values (token ,def) str))))))
+  )
 
 ;; (defun -lexer (str)
 ;;   (cond
@@ -88,7 +92,7 @@
                  ((string= key "name")
                   (setf parser-name (intern-it value))
                   (setf parser-name (intern-it (concatenate 'string value "-parser")))
-                  (setf lexer-name (intern-it (concatenate 'string value "-lexer")))
+                  (setf lexer-name (string-upcase (concatenate 'string value "-lexer")))
                   (when (> (length value) 0)
                       (setf (have-name model) t)))
                  ;;
@@ -117,24 +121,29 @@
     ;;
     (dolist (prod productions-def)
       (setf productions (append productions (nreverse (parse-prod prod)))))
-    ;; (setf productions (nreverse productions))
-    ;; (print-complex productions)
+    (setf productions (nreverse productions))
+    ;;(print-complex productions)
 
-    ;; (setf grammar (make-grammar :name name
-    ;;                             :start-symbol start-symbol
-    ;;                             :terminals terminals
-    ;;                             :precedence precedence
-    ;;                             :productions productions))
-    ;; (setf parser (make-parser grammar))
-    ;; (print-complex parser)
+    (setf grammar (make-grammar :name name
+                                :start-symbol start-symbol
+                                :terminals terminals
+                                :precedence precedence
+                                :productions productions))
+    (setf parser (make-parser grammar))
+    ;;(print-complex parser)
 
-    (print-complex lexer-defs)
-    (print (macroexpand-1
-     '(prepare-lexer :name lexer-name :definitions lexer-defs)))
+    ;;(print-complex lexer-defs)
+    (print (macroexpand-1 '(prepare-lexer :name lexer-name :defs lexer-defs)))
+    (prepare-lexer :name lexer-name :defs lexer-defs)
+    ;; (when (find-symbol lexer-name)
+    ;;   (let ((flex (intern lexer-name #.*package*)))
+    ;;     (funcall flex "mv")))
     )
   )
 (defun read-configs (&optional (path *common-path*))
   (normalize-path path)
-  (loop for file in (directory
-                     (concatenate 'string path *config-file-mask*))
-        do (read-config file)))
+  (let ((func))
+    (loop for file in (directory
+                       (concatenate 'string path *config-file-mask*))
+          do (setf func (read-config file)))
+    func))
