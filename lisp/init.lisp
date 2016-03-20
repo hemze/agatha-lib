@@ -10,9 +10,17 @@
             (:conc-name have-))
   terminals productions start-symbol name)
 
-(defstruct (lexer-def-t
-            (:constructor make-lexer-def))
+(defstruct (lexer-definition
+            (:constructor make-lexer-def)
+            (:conc-name))
   pattern
   token)
 
+(defstruct (translator (:constructor make-translator)
+                       (:conc-name))
+  parser
+  lexer)
+
 (defvar *pattern-model* (make-pd-model :terminals t :productions t :start-symbol t :name t :name t))
+
+(defparameter *translators-hash* (make-hash-table))
