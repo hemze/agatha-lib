@@ -1,4 +1,5 @@
 *.bak
 lisp/*.bak
 lisp/#*#
+lisp/*.fasl
 lisp/parsers/#*#
