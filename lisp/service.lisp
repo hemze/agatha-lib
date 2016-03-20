@@ -8,9 +8,10 @@
                          ": ~a (type: ~a)~%")
            ,value (type-of ,value)))
 
-(defun split-string (value)
+(defun split-string (value &optional (sep #\Space))
+  (declare (type character sep))
   (loop for i = 0 then (1+ j)
-        as j = (position #\Space value :start i)
+        as j = (position sep value :start i)
         collect (subseq value i j)
         while j))
 

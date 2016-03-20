@@ -1,4 +1,4 @@
-- name: fs-lib
+- name: fs
 - start-symbol: expr
 - terminals: [copy, delete, move, filename]
 - productions:
@@ -6,8 +6,6 @@
      - 1:
         value: operation operand
         action: lambda (x) (print x)
-#
-#
    operation:
      - 1:
         value: copy
@@ -18,6 +16,6 @@
    operand: filename
 - lexer:
     filename: '".+(\..+)?"'
-    copy: (cp|copi)
+    copy: (cp|copy)
     move: mv
     delete : del

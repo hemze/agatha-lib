@@ -52,13 +52,25 @@
   `(cond
      ,@(loop for def in defs
              collect
-             `((cl-ppcre:scan (pattern ,def) str) (return-from ,name (values (token ,def) str)))
-             )))
+             `((multiple-value-bind (start end)
+                   (cl-ppcre:scan (pattern ,def) str)
+                 (if (and start end (= start 0))
+                     (if (< (1+ end) (length str))
+                         (setf str (subseq str (1+ end)))
+                         ;; надо в str класть остатки, а возвращать с токеном не его, а то, что "сматчили" регекспом
+                         t)
+                     nil))
+               (return-from ,name (values (token ,def) str))))
+     (t (return-from ,name (values nil nil)))))
 
 (defun prepare-lexer-code (name defs)
   (let ((func-name (intern name)))
-  `(defun ,func-name (str)
-     ,(make-cond-body func-name defs))))
+    `(defun ,func-name (str)
+       (let ((str-copy (copy-seq str)))
+         (loop while str-copy
+               do
+               ,(make-cond-body func-name defs))
+         (return-from ,func-name (values nil nil))))))
 
 (defun read-config (filename)
   (let ((doc (cl-yy::yaml-load-file filename))
@@ -131,8 +143,19 @@
           (make-translator :parser (make-parser grammar)
                            :lexer (eval (prepare-lexer-code lexer-name lexer-defs))))
 
-    (multiple-value-bind (token str) (funcall (lexer (gethash name *translators-hash*)) "copi")
-      (format t "And the result for \"mv\" is:~%Token: ~a. Value: ~a~%" token str))
+    ;;(format t "~a~%" (symbol-function  (lexer (gethash name *translators-hash*))))
+
+    ;; (dolist (word (split-string "copy \"file.name\"" #\Space))
+    ;;   (parse-with-lexer (funcall (lexer (gethash name *translators-hash*)) word)
+    ;;                     (parser (gethash name *translators-hash*))))
+      ;;(loop
+    ;;(dotimes (i 0 2)
+    (let ((copy-str (copy-seq "copy \"file.name\"")))
+      (multiple-value-bind (token str) (funcall (lexer (gethash name *translators-hash*)) copy-str)
+        (format t "And the result for ~a is:~%Token: ~a. Value: ~a~%" copy-str token str)))
+        ;;)
+
+        ;;when (not (and token str)) do (return)))
 
   ))
 (defun read-configs (&optional (path *common-path*))
