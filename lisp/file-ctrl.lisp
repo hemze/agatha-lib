@@ -1,9 +1,10 @@
 (in-package #:agatha-lib)
 (require 'cl-yaclyaml)
-(require 'cl-ppcre)
+;(require 'cl-ppcre)
 
 (defparameter *config-file-mask* "*.yml")
 (defparameter *lexer-defs* '())
+(defparameter *temp-str* "")
 
 (defun normalize-path (path)
   (let ((last-ind (1- (length path))))
@@ -17,60 +18,6 @@
                   last-ind (1- last-ind)))
            (t
             (return path))))))
-
-(defun gather-productions (obj)
-  (let ((result))
-    (cond
-      ((eql (type-of obj) 'HASH-TABLE)
-       (loop for key being the hash-keys of obj
-               using (hash-value value)
-             do
-                (cond
-                  ((eql (type-of value) 'CONS)
-                   (let ((values))
-                     (dolist (h value)
-                       (setf values (append values
-                                            (intern-joint h))))
-                     (setf result (append result (list (cons (intern-it key) values))))))
-                  (t
-                   (setf result (append result (list (list (intern-it key) (intern-it value))))))))))
-    result))
-
-(defun gather-terminals (terms)
-   (if (eql (type-of terms) 'CONS)
-       (loop for term in terms
-             collect (intern-it term))
-      (intern-it terms))
-  )
-
-(defun gather-lexer-defs (obj)
-  (loop for key being the hash-keys of obj
-          using (hash-value value)
-        collect (make-lexer-def :pattern value :token key)))
-
-(defun make-cond-body (name defs)
-  `(cond
-     ,@(loop for def in defs
-             collect
-             `((multiple-value-bind (start end)
-                   (cl-ppcre:scan (pattern ,def) str)
-                 (if (and start end (= start 0))
-                     (if (< (1+ end) (length str))
-                         (setf str (subseq str (1+ end)))
-                         ;; надо в str класть остатки, а возвращать с токеном не его, а то, что "сматчили" регекспом
-                         t)
-                     nil))
-               (return-from ,name (values (token ,def) str))))
-     (t (return-from ,name (values nil nil)))))
-
-(defun prepare-lexer-code (name defs)
-  (let ((func-name (intern name)))
-    `(defun ,func-name (str)
-       (let ((str-copy (copy-seq str)))
-         (loop while str-copy
-               do
-               ,(make-cond-body func-name defs))
-         (return-from ,func-name (values nil nil))))))
 
 (defun read-config (filename)
   (let ((doc (cl-yy::yaml-load-file filename))
@@ -146,17 +93,14 @@
     ;;(format t "~a~%" (symbol-function  (lexer (gethash name *translators-hash*))))
 
     ;; (dolist (word (split-string "copy \"file.name\"" #\Space))
-    ;;   (parse-with-lexer (funcall (lexer (gethash name *translators-hash*)) word)
-    ;;                     (parser (gethash name *translators-hash*))))
-      ;;(loop
-    ;;(dotimes (i 0 2)
-    (let ((copy-str (copy-seq "copy \"file.name\"")))
-      (multiple-value-bind (token str) (funcall (lexer (gethash name *translators-hash*)) copy-str)
-        (format t "And the result for ~a is:~%Token: ~a. Value: ~a~%" copy-str token str)))
-        ;;)
+    ;;
+    ;;(parser (gethash name *translators-hash*))))
 
-        ;;when (not (and token str)) do (return)))
 
+    (setf *temp-str* (copy-seq "copy \"file.name\""))
+
+    (parse-with-lexer (symbol-function (lexer (gethash name *translators-hash*)))
+                      (parser (gethash name *translators-hash*)))
   ))
 (defun read-configs (&optional (path *common-path*))
   (normalize-path path)

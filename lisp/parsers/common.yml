@@ -5,7 +5,7 @@
    expr:
      - 1:
         value: operation operand
-        action: lambda (x) (print x)
+        action: "lambda (x y) (format t \"~a: ~a\" x y)"
    operation:
      - 1:
         value: copy

@@ -17,8 +17,21 @@
 
 (defun intern-action (value)
   (if (position #\Space value)
-      (append '(function) (list (intern-list-elems (split-string value))))
-      (append '(function) (list (intern (string-upcase value))))))
+      ;; Assemble a list with definition the lambda,
+      ;; complement with "#'" chars and evaluate
+      ;; the result to recieve the function object
+      (let* ((*stream* (make-string-input-stream value))
+             (func
+               (append '(function)
+                       (list (loop as obj = (read-preserving-whitespace *stream* nil nil)
+                                   while obj
+                                   collect obj)))))
+        (eval func))
+      ;; Simply evaluate the code to make
+      ;; a function object
+      (let* ((*stream* (make-string-input-stream "test"))
+             (func (append '(function) (list (read-preserving-whitespace *stream* nil nil)))))
+        (eval func))))
 
 (defun intern-it (value)
   (if (position #\Space value)
