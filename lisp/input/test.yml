@@ -1,0 +1,11 @@
+run_cmd: start_command
+context: fs
+cases:
+  - name: Check DB connection
+    severity: high
+    context: db
+    success:
+      context: fs
+      condition: file "result.txt" exists and is not empty
+    steps:
+      - run sqlplus

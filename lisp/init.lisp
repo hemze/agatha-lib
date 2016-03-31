@@ -1,5 +1,5 @@
 (defpackage #:agatha-lib
-  (:use #:cl #:buffalo #:cl-yaclyaml)
+  (:use #:cl #:yacc #:cl-yaclyaml)
   (:export #:prepare-lexer #:read-configs))
 
 (in-package #:agatha-lib)
