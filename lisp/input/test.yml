@@ -1,11 +1,26 @@
-run_cmd: start_command
-context: fs
-cases:
-  - name: Check DB connection
-    severity: high
-    context: db
-    success:
+run_cmd:
+  action : start_command
+  context: fs
+prepare:
+  steps:
+    - action: check dir "./" is writable
       context: fs
-      condition: file "result.txt" exists and is not empty
+cases:
+  - name: Check file copy
+    severity: critical
     steps:
-      - run sqlplus
+     -
+       action: copy "file.txt" "result.txt"
+       context: fs
+#     -
+#       action: "result.txt" exists
+#       context: fs
+#     - action: "result.txt" is not empty
+#       context: fs
+#   - name: Check file delete
+#     severity: critical
+#     steps:
+#       - action: del "result.txt"
+#         context: fs
+#       - action: "result.txt" is absent
+#         context: fs

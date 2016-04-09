@@ -1,9 +1,11 @@
 (defpackage #:agatha-lib
   (:use #:cl #:yacc #:cl-yaclyaml)
-  (:export #:prepare-lexer #:read-configs))
+  (:export #:parse))
 
 (in-package #:agatha-lib)
-(defvar *common-path* "./parsers/")
+
+(defparameter *config-file-mask* "*.yml")
+(defparameter *temp-str* "")
 
 (defstruct (parser-def-model-t
             (:constructor make-pd-model)
@@ -20,6 +22,11 @@
                        (:conc-name))
   parser
   lexer)
+
+(defstruct (translatable (:constructor make-input-object)
+                         (:conc-name))
+  action
+  context)
 
 (defvar *pattern-model* (make-pd-model :terminals t :productions t :start-symbol t :name t :name t))
 

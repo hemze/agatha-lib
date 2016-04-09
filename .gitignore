@@ -3,3 +3,5 @@ lisp/*.bak
 lisp/#*#
 lisp/*.fasl
 lisp/parsers/#*#
+lisp/*.*~
+lisp/parsers/*.*~

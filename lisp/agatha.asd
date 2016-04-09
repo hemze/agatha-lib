@@ -11,4 +11,6 @@
                (:file "validator")
                (:file "prepare-data")
                (:file "lexer-gen")
-               (:file "file-ctrl")))
+               (:file "config-parser")
+               (:file "input-parser")
+               (:file "parse-front")))

@@ -1,0 +1,28 @@
+name: fs
+start-symbol: operations
+terminals: [copy, delete, move, filename]
+#, exists, exist, is, not, empty filename, dirname, writable
+productions:
+   operations:
+     - value: operation
+     - value: operation operands
+       action: "lambda (&rest a) (format t \"~a\" a)"
+     - value: operands operation
+   operation:
+     - value: copy
+       action: "lambda (oper) (format nil \"Copy File\")"
+     - value: delete
+       action: "lambda (oper) (format nil \"Delete File\")"
+     - value: move
+       action: "lambda (oper) (format nil \"Move File\")"
+   operands:
+     - value: operand
+     - value: operand operands
+   operand:
+     - value: filename
+       action: "lambda (data) (format nil \" --~a-- \" data)"
+lexer:
+    filename: '".+(\..+)?"'
+    copy: (cp|copy)
+    move: (mv|move)
+    delete : (del|delete)

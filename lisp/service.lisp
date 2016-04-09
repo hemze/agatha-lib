@@ -17,20 +17,20 @@
 
 (defun intern-action (value)
   (if (position #\Space value)
-      ;; Assemble a list with definition the lambda,
+      ;; Assemble a list with definition the lambda-func,
       ;; complement with "#'" chars and evaluate
       ;; the result to recieve the function object
-      (let* ((*stream* (make-string-input-stream value))
+      (let* ((stream (make-string-input-stream value))
              (func
                (append '(function)
-                       (list (loop as obj = (read-preserving-whitespace *stream* nil nil)
+                       (list (loop as obj = (read-preserving-whitespace stream nil nil)
                                    while obj
                                    collect obj)))))
         (eval func))
       ;; Simply evaluate the code to make
       ;; a function object
-      (let* ((*stream* (make-string-input-stream "test"))
-             (func (append '(function) (list (read-preserving-whitespace *stream* nil nil)))))
+      (let* ((stream (make-string-input-stream value))
+             (func (append '(function) (list (read-preserving-whitespace stream nil nil)))))
         (eval func))))
 
 (defun intern-it (value)
@@ -43,21 +43,24 @@
         collecting (intern-it item)))
 
 (defun intern-joint (h)
-  (loop for val being the hash-values of h
-        collect
-        (let* ((res)
-               (v (intern-it (gethash "value" val)))
-               (act-str (gethash "action" val))
-               (a (when act-str
-                    (intern-action act-str))))
-          (cond
-            ((eql (type-of v) 'CONS)
+  (let* ((res)
+         (val-str (gethash "value" h))
+         (v (if val-str
+                (intern-it val-str)
+                ()))
+         (act-str (gethash "action" h))
+         (a (when act-str
+              (intern-action act-str))))
+    (cond
+      ((eql (type-of v) 'CONS)
              (loop for i in v do (push i res)))
-            (t
-             (push v res)))
-          (if a
-              (append (nreverse res) (list a))
-              (nreverse res)))))
+      (t
+       (push v res)))
+    (if a
+        (append (nreverse res) (list a))
+        (nreverse res)))
+                                        ;)
+  )
 
 (defun print-hash (hash)
   (loop for key being the hash-keys of hash
