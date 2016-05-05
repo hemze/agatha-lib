@@ -1,0 +1,9 @@
+front:
+  - read config
+  - start parsing
+    - run parsers generating
+    - run RF environment preparation
+    - start parsing input files
+
+prepare:
+  - prepare directory tree

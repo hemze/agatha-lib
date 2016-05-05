@@ -2,6 +2,19 @@
 ;;----------------------------------------------------------
 ;; -- service
 
+(defun normalize-path (path)
+  (let ((last-ind (1- (length path))))
+    (loop
+      do
+         (cond
+           ((or
+             (char= (elt path last-ind) #\/)
+             (char= (elt path last-ind) #\\))
+            (setf path (subseq path 0 last-ind)
+                  last-ind (1- last-ind)))
+           (t
+            (return path))))))
+
 (defmacro print-complex (value)
   `(format t
            ,(concatenate 'string (string-upcase (symbol-name value))
@@ -23,8 +36,8 @@
       (let* ((stream (make-string-input-stream value))
              (func
                (append '(function)
-                       (list (loop as obj = (read-preserving-whitespace stream nil nil)
-                                   while obj
+                       (list (loop as obj = (read-preserving-whitespace stream nil 'the-end nil)
+                                   while (not (eql obj 'the-end))
                                    collect obj)))))
         (eval func))
       ;; Simply evaluate the code to make

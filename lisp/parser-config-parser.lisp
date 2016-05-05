@@ -2,19 +2,6 @@
 (require 'cl-yaclyaml)
 ;(require 'cl-ppcre)
 
-(defun normalize-path (path)
-  (let ((last-ind (1- (length path))))
-    (loop
-      do
-         (cond
-           ((or
-             (char= (elt path last-ind) #\/)
-             (char= (elt path last-ind) #\\))
-            (setf path (subseq path 0 last-ind)
-                  last-ind (1- last-ind)))
-           (t
-            (return path))))))
-
 (defun read-config (filename)
   (let ((hash (cl-yy::yaml-load-file filename))
         (productions-def)
@@ -86,8 +73,8 @@
           (make-translator :parser (make-parser grammar)
                            :lexer (eval (prepare-lexer-code lexer-name lexer-defs))))
     ))
-(defun read-configs (&optional (path *general-config-path*))
+(defun read-configs (path)
   (normalize-path path)
   (loop for file in (directory
-                     (concatenate 'string path *input-file-mask*))
+                     (concatenate 'string path "/" *input-file-mask*))
         do (read-config file)))

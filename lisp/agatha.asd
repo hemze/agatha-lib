@@ -5,12 +5,13 @@
   :license "BSD-style"
   :serial t
   :version "1"
-  :depends-on (#:yacc #:cl-yaclyaml)
+  :depends-on (#:yacc #:cl-yaclyaml #:closure-template)
   :components ((:file "init")
+               ;;(:file "configurator")
                (:file "service")
-               (:file "validator")
                (:file "prepare-data")
                (:file "lexer-gen")
-               (:file "config-parser")
+               (:file "parser-config-parser")
+               (:file "prepare-output-env")
                (:file "input-parser")
-               (:file "parse-front")))
+               (:file "front")))

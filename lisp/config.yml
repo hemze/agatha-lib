@@ -1,0 +1,14 @@
+---
+parsers-path: ./parsers
+
+input-path: ./input
+
+output-path: ~/generated-tests
+
+dir-structure:
+               - test
+               - library
+               - var
+               - resources
+               - data
+               - output

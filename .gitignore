@@ -4,4 +4,5 @@ lisp/#*#
 lisp/*.fasl
 lisp/parsers/#*#
 lisp/*.*~
+lisp/*/*.*~
 lisp/parsers/*.*~

@@ -19,6 +19,7 @@ it refers and the value matched"
                          (setf *temp-str* (string-trim '(#\Space) (subseq *temp-str* end)))
                          t)
                        nil))
+                 (format nil "~%------- A value returning: ~a~%" val)
                  (return-from ,name (values (token ,def) val))))
        (t (return-from ,name (values nil nil))))))
 

@@ -1,0 +1,30 @@
+{namespace rf}
+{template libs}
+*** Settings ***{\n}
+{foreach $lib in $libs}
+Library{\t}{\t}{$lib}{\n}
+{/foreach}
+{\n}
+Suite Setup{\t}{\t}{\t}Suite common setup{\n}
+Suite Teardown{\t}{\t}Suite common teardown{\n}
+Test Setup{\t}{\t}{\t}Test common setup{\n}
+Test Teardown{\t}{\t}Test common teardown{\n}{\n}
+
+{call rest /}
+{/template}
+{template rest}
+*** Variables ***{\n}{\n}
+
+*** Keywords ***{\n}{\n}
+{foreach $key in $keys}
+{call keyword_tmplq data="$key" /}{\n}
+{/foreach}
+{\n}
+** Testcases ***{\n}{\n}
+{/template}
+
+{template keyword_tmpl}
+{$data}{\n}
+{\t}[Arguments]{\t}{\n}
+
+{/template}

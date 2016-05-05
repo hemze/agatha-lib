@@ -1,7 +1,17 @@
-run_cmd:
-  action : start_command
-  context: fs
-prepare:
+name: Common file operations test
+suite-setup:
+  steps:
+    - action: check dir "./" is writable
+      context: fs
+suite-teardown:
+  steps:
+    - action: check dir "./" is writable
+      context: fs
+test-setup:
+  steps:
+    - action: check dir "./" is writable
+      context: fs
+test-teardown:
   steps:
     - action: check dir "./" is writable
       context: fs
@@ -9,18 +19,16 @@ cases:
   - name: Check file copy
     severity: critical
     steps:
-     -
-       action: copy "file.txt" "result.txt"
-       context: fs
-#     -
-#       action: "result.txt" exists
-#       context: fs
-#     - action: "result.txt" is not empty
-#       context: fs
-#   - name: Check file delete
-#     severity: critical
-#     steps:
-#       - action: del "result.txt"
-#         context: fs
-#       - action: "result.txt" is absent
-#         context: fs
+    - action: copy "file.txt" "result.txt"
+      context: fs
+    - action: file "result.txt" exists
+      context: fs
+    - action: file "result.txt" is not empty
+      context: fs
+  - name: Check file delete
+    severity: critical
+    steps:
+      - action: del "result.txt"
+        context: fs
+      - action: file "result.txt" is absent
+        context: fs

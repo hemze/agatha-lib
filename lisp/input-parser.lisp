@@ -1,32 +1,62 @@
 (in-package #:agatha-lib)
 (require 'cl-yaclyaml)
+(require 'closure-template)
 
 (defparameter *general-input-path* "./input/")
 
-(defun read-input-files (&optional (path *general-input-path*))
-  (normalize-path path)
-  (loop for file in (directory
-                     (concatenate 'string path *config-file-mask*))
-        do (parse-input file)))
+(defun parse-input-with-context (input)
+  ;;  (declare (type translatable input))
+  (let* ((action (action input))
+         (context (intern (string-upcase (context input))))
+         (translator
+           (gethash context *translators-hash*)))
+    (setf *temp-str* (copy-seq action))
+    (if translator
+        (let ((result (parse-with-lexer (symbol-function (lexer translator))
+                                 (parser translator))))
+          (if result
+              (format nil "~a~%" result)))
+        (format t "No translator found by key: ~a" context))
+    )
+  )
 
-
-(defun parse-input (filename)
+(defun parse-input-file (filename)
   (let ((doc (cl-yy::yaml-load-file filename))
         (suite-name)
         (run-cmd)
         (cases)
-        (prepare-cmd)
+        (prepare-section)
         (test-start-ready))
-    (setf run-cmd (gethash "run_cmd" doc))
     (setf cases (gethash "cases" doc))
+    (setf prepare-section (gethash "prepare" doc))
+
     (dolist (test-case cases)
       (let ((steps (gethash "steps" test-case)))
         (dolist (step steps)
           (let ((input)
                 (action (gethash "action" step))
                 (context (gethash "context" step)))
+            (format nil "~%~%Translate action: <~a> in context of <~a>~%" action context)
             (setf input (make-input-object :action action
                                            :context context))
-            (parse-input-with-context input))
+            (parse-input-with-context input)
+            )
           )))
     ))
+
+(defun read-input-files (path)
+  ;; prepare templator to work
+  (closure-template:compile-template :common-lisp-backend #P"tmpl/rf.tmpl") ;; parameterize it
+  ;; make sure that given path is existing and proper
+  (normalize-path path)
+  ;; make additional preparations for directory tree if necessary
+  (prepare-dir-env)
+  ;; and do the thing!
+  (loop for file in (directory
+                     (concatenate 'string path "/" *input-file-mask*))
+        do (progn
+             (parse-input-file file))))
+
+(defun write-output (libs)
+  (format t "~a~%" (rf:libs (list :libs libs :keys keys)))
+  )
