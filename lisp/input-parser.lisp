@@ -5,7 +5,8 @@
 (defparameter *general-input-path* "./input/")
 
 (defun parse-input-with-context (input)
-  ;;  (declare (type translatable input))
+  (declare (type translatable input))
+;;  (print-complex input)
   (let* ((action (action input))
          (context (intern (string-upcase (context input))))
          (translator
@@ -15,7 +16,8 @@
         (let ((result (parse-with-lexer (symbol-function (lexer translator))
                                  (parser translator))))
           (if result
-              (format nil "~a~%" result)))
+              (format nil "~a~%" result)
+              (format t "::::::::::")))
         (format t "No translator found by key: ~a" context))
     )
   )
@@ -36,10 +38,10 @@
           (let ((input)
                 (action (gethash "action" step))
                 (context (gethash "context" step)))
-            (format nil "~%~%Translate action: <~a> in context of <~a>~%" action context)
+            (format t "~%Translate action: <~a> in context of <~a>~%" action context)
             (setf input (make-input-object :action action
                                            :context context))
-            (parse-input-with-context input)
+            (format t "~a~%" (parse-input-with-context input))
             )
           )))
     ))
@@ -49,14 +51,8 @@
   (closure-template:compile-template :common-lisp-backend #P"tmpl/rf.tmpl") ;; parameterize it
   ;; make sure that given path is existing and proper
   (normalize-path path)
-  ;; make additional preparations for directory tree if necessary
-  (prepare-dir-env)
   ;; and do the thing!
   (loop for file in (directory
                      (concatenate 'string path "/" *input-file-mask*))
         do (progn
              (parse-input-file file))))
-
-(defun write-output (libs)
-  (format t "~a~%" (rf:libs (list :libs libs :keys keys)))
-  )

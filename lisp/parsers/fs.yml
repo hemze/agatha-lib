@@ -1,7 +1,6 @@
 name: fs
 start-symbol: operations
 terminals: [copy, delete, move, filename, file, exist, emptyness, presense]
-#, dirname, writable
 productions:
    operations:
      - value: operation

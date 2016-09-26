@@ -1,5 +1,8 @@
 (in-package #:agatha-lib)
-
+;;
+;; originally located in private part of yacc library
+;; TODO: something with it...
+;;
 (defun parse-prod (form)
   (let ((symbol (car form))
         (productions '()))
@@ -18,11 +21,10 @@
                                     :action-form action)
                    productions))))
         (t (error "Unexpected production ~S" stuff))))
-    ;; (push (make-production (intern "OPERATIONS") nil
-    ;;                        :action #'identity :action-form '#'identity)
-    ;;       productions)
     productions))
-
+;;
+;; gather all productions definitions
+;;
 (defun gather-productions (obj)
   (let ((result))
     (cond
@@ -34,20 +36,36 @@
                   ((eql (type-of value) 'CONS)
                    (let ((values))
                      (dolist (h value)
-                       (setf values (append values
-                                            (list (intern-joint h)))))
-                     (setf result (append result (list (cons (intern-it key) values))))))
+                       (setf values (append
+                                     values
+                                     (list
+                                      (intern-joint h)))))
+                     (setf result (append
+                                   result
+                                   (list (cons
+                                          (intern-it key)
+                                          values))))))
                   (t
-                   (setf result (append result (list (list (intern-it key) (intern-it value))))))))))
+                   (setf result (append
+                                 result
+                                 (list (list (intern-it key)
+                                             (intern-it value)))
+                                 )))))))
     result))
-
+;;
+;; gather all terminals
+;;
 (defun gather-terminals (terms)
   (if (eql (type-of terms) 'CONS)
       (loop for term in terms
             collect (intern-it term))
       (intern-it terms)))
-
+;;
+;; gather all lexer definitions
+;;
 (defun gather-lexer-defs (obj)
   (loop for key being the hash-keys of obj
           using (hash-value value)
-        collect (make-lexer-def :pattern value :token (intern (string-upcase key)))))
+        collect (make-lexer-def
+                 :pattern value
+                 :token (intern (string-upcase key)))))

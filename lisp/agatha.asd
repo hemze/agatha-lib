@@ -7,11 +7,10 @@
   :version "1"
   :depends-on (#:yacc #:cl-yaclyaml #:closure-template)
   :components ((:file "init")
-               ;;(:file "configurator")
                (:file "service")
                (:file "prepare-data")
                (:file "lexer-gen")
                (:file "parser-config-parser")
-               (:file "prepare-output-env")
+               ;; (:file "prepare-output-env")
                (:file "input-parser")
                (:file "front")))

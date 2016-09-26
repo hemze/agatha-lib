@@ -34,17 +34,17 @@
       ;; complement with "#'" chars and evaluate
       ;; the result to recieve the function object
       (let* ((stream (make-string-input-stream value))
-             (func
+             (func-def
                (append '(function)
                        (list (loop as obj = (read-preserving-whitespace stream nil 'the-end nil)
                                    while (not (eql obj 'the-end))
                                    collect obj)))))
-        (eval func))
+        (eval func-def))
       ;; Simply evaluate the code to make
       ;; a function object
       (let* ((stream (make-string-input-stream value))
-             (func (append '(function) (list (read-preserving-whitespace stream nil nil)))))
-        (eval func))))
+             (func-def (append '(function) (list (read-preserving-whitespace stream nil nil)))))
+        (eval func-def))))
 
 (defun intern-it (value)
   (if (position #\Space value)
@@ -72,7 +72,6 @@
     (if a
         (append (nreverse res) (list a))
         (nreverse res)))
-                                        ;)
   )
 
 (defun print-hash (hash)

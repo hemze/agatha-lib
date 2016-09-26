@@ -14,5 +14,4 @@
   (read-app-config path)
   ;; read all parsing settings and generate relative parsers
   (read-configs (gethash "parsers-path" *config*))
-  (read-input-files (gethash "input-path" *config*))
-  (write-output '('("Collections" "String") '("a" "b" "c"))))
+  (read-input-files (gethash "input-path" *config*)))

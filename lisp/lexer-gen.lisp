@@ -6,7 +6,7 @@
 COND form checking for matching the
 regexp and the match starting at the begining
 of the input string. If so return the token
-it refers and the value matched"
+it refers to and the value matched"
   `(let ((val))
      (cond
        ,@(loop for def in defs
@@ -16,7 +16,9 @@ it refers and the value matched"
                    (if (and start end (= start 0))
                        (progn
                          (setf val (subseq *temp-str* start end))
-                         (setf *temp-str* (string-trim '(#\Space) (subseq *temp-str* end)))
+                         (setf *temp-str* (string-trim
+                                           '(#\Space)
+                                           (subseq *temp-str* end)))
                          t)
                        nil))
                  (format nil "~%------- A value returning: ~a~%" val)

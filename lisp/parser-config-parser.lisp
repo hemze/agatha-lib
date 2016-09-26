@@ -1,6 +1,5 @@
 (in-package #:agatha-lib)
 (require 'cl-yaclyaml)
-;(require 'cl-ppcre)
 
 (defun read-config (filename)
   (let ((hash (cl-yy::yaml-load-file filename))
@@ -51,6 +50,7 @@
                 (format t "Key: ~a~%" key))))
 
     ;; Check the completeness
+    ;; TODO: make it more ...
     (unless (equalp model *pattern-model*)
       (format t "Somethin's wrong with the parser definition: ~%")
       (format t "Assembled: ~a~%" model)
@@ -60,6 +60,7 @@
     (dolist (prod productions-def)
       (setf productions (append productions (nreverse (parse-prod prod)))))
     (setf productions (nreverse productions))
+
     ;; Prepare grammar
     (setf grammar (make-grammar :name name
                                 :start-symbol start-symbol
@@ -69,6 +70,7 @@
     ;; Prepare parser
     (setf parser (make-parser grammar))
 
+    ;; Save a new parser in parsers collection
     (setf (gethash name *translators-hash*)
           (make-translator :parser (make-parser grammar)
                            :lexer (eval (prepare-lexer-code lexer-name lexer-defs))))
