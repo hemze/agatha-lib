@@ -1,0 +1,22 @@
+name: autolisp
+start-symbol: operations
+terminals: [circle, square, size, point]
+productions:
+   operations:
+     - value: operation operands
+     - value: operation
+   operation:
+     - value: circle
+       action: "lambda (p) (format nil \"~a ~a\" \"CIRCLE\" \"2P\")"
+   operands:
+     - value: operand
+     - value: operand operands
+   operand:
+     - value: point
+       action: "lambda (data) (format nil \" ~a \" data)"
+     - value: size
+       action: "lambda (data) (format nil \" ~a \" data)"
+lexer:
+    circle: circle
+    point: \(\d+\.\d+\)
+    size: \d+

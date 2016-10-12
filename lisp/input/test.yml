@@ -1,34 +1,8 @@
 name: Common file operations test
-suite-setup:
-  steps:
-    - action: check dir "./" is writable
+commands:
+    - cmd: copy "file.txt" "result.txt"
       context: fs
-suite-teardown:
-  steps:
-    - action: check dir "./" is writable
+    - cmd: file "result.txt" exists
       context: fs
-test-setup:
-  steps:
-    - action: check dir "./" is writable
+    - cmd: file "result.txt" is not empty
       context: fs
-test-teardown:
-  steps:
-    - action: check dir "./" is writable
-      context: fs
-cases:
-  - name: Check file copy
-    severity: critical
-    steps:
-    - action: copy "file.txt" "result.txt"
-      context: fs
-    - action: file "result.txt" exists
-      context: fs
-    - action: file "result.txt" is not empty
-      context: fs
-  - name: Check file delete
-    severity: critical
-    steps:
-      - action: del "result.txt"
-        context: fs
-      - action: file "result.txt" is absent
-        context: fs

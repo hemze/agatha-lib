@@ -1,0 +1,4 @@
+name: al
+commands:
+    - cmd: circle (40.4)
+      context: autolisp
